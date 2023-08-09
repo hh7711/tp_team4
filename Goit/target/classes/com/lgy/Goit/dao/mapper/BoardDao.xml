@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lgy.Goit.dao.BoardDao">
+
+	<sql id="criteria">
+		<trim prefix="(" suffix=") AND" prefixOverrides="OR">
+			<foreach item="type" collection="typeArr">
+				<trim prefix="OR">
+					<choose>
+						<when test="type == 'I'.toString()">
+							id like '%' || '${keyword}' || '%'
+						</when>
+						<when test="type == 'T'.toString()">
+							b_title like '%' || '${keyword}' || '%'
+						</when>
+						<when test="type == 'C'.toString()">
+							b_content like '%' || '${keyword}' || '%'
+						</when>
+					</choose>
+				</trim>
+			</foreach>
+		</trim>
+	</sql>
+
+<!-- 	페이징 -->
+<!--     게시글 총 갯수 조회 -->
+    <select id="getTotalCount" resultType="int">
+       select count(*) from goit_board
+    </select>
+<!-- 	게시판 리스트 페이징     -->
+	<select id="boardListPaging" resultType="com.lgy.Goit.dto.BoardDto">
+		<![CDATA[
+			select b.b_thumb
+				 , b.b_no
+				 , b.b_title
+				 , (select count(*) from goit_board_cmt where b_no = b.b_no) as comm_cnt
+				 , b.id
+				 , b.b_date
+				 , b.b_hit
+				 , b.count
+			from( 
+				select b_thumb, b_no, b_title, id, b_date, b_hit,
+				(select count(*) from goit_board) as count, 
+				ROWNUM rn 
+				from goit_board 
+				where 
+		]]> 
+				<include refid="criteria"></include>
+		<![CDATA[
+				rownum <= (#{pageNum} * #{amount})
+				order by b_no desc) b
+			WHERE rn > (#{pageNum} - 1) * #{amount}
+			order by b.b_no desc
+		]]> 
+    </select>
+<!--     검색 -->
+	<select id="searchList" resultType="com.lgy.Goit.dto.BoardDto">
+		<![CDATA[
+			select b.b_thumb
+				 , b.b_no
+				 , b.b_title
+				 , (select count(*) from goit_board_cmt where b_no = b.b_no) as comm_cnt
+				 , b.id
+				 , b.b_date
+				 , b.b_hit
+				 , (select count(*) from goit_board where 
+		]]> 
+					<include refid="criteria"></include>
+		<![CDATA[   
+					1=1 ) AS count
+			from ( 
+					select b.b_thumb
+				 		 , b.b_no
+				 		 , b.b_title
+				 		 , (select count(*) from goit_board_cmt where b_no = b.b_no) as comm_cnt
+				 		 , b.id
+				 		 , b.b_date
+				 		 , b.b_hit
+						 , ROWNUM rn
+					from goit_board b
+					where 
+		]]> 
+					<include refid="criteria"></include>
+		<![CDATA[  
+					1=1  AND ROWNUM <= (#{pageNum} * #{amount})
+			) b
+			WHERE rn > (#{pageNum}-1) * #{amount}
+			order by b.b_no desc
+		]]>
+    </select>
+<!-- 	로그인여부 체크 -->
+	<select id="logincheck" parameterType="hashmap" resultType="com.lgy.Goit.dto.BoardDto">
+		select id from goit_member where id = #{id}
+	</select>
+	
+<!-- 	게시글 작성 -->
+<!--     <insert id="boardWrite" parameterType="hashmap"> -->
+    <insert id="boardWrite" parameterType="com.lgy.Goit.dto.BoardDto">
+		insert into goit_board( b_no
+		                      , id
+		                      , b_title
+		                      , b_content
+		                      , b_img
+		                      , b_thumb)
+              		  values( goit_board_seq.nextval
+		                      , #{id}
+		                      , #{b_title}
+	                      	  , #{b_content}
+	                      	  , #{b_img}
+	                      	  , #{b_thumb})
+    </insert>
+    
+<!--     게시글 조회수 증가 -->
+    <update id="boardUpHit" parameterType="hashmap">
+    	<![CDATA[
+    		update goit_board set b_hit = b_hit+1 where b_no = #{b_no}
+    	]]>
+    </update>
+    
+<!--     리뷰내용 조회 -->
+    <select id="boardContentView" parameterType="hashmap" resultType="com.lgy.Goit.dto.BoardDto">
+		select b_no
+			 , b_title
+      		 , id
+      		 , b_date
+      		 , b_hit
+      		 , b_img
+      		 , b_thumb
+      		 , b_content
+		from goit_board
+		where b_no = #{b_no}
+    </select>
+    
+<!--     게시글 수정 -->
+	<update id="boardEdit" parameterType="com.lgy.Goit.dto.BoardDto">
+		update goit_board set b_title = #{b_title}
+		 	                , b_img = #{b_img}
+		 	                , b_thumb = #{b_thumb}
+		 	                , b_content = #{b_content}
+ 		where b_no = #{b_no} and id = #{id}
+	</update>
+	
+<!-- 	리뷰삭제 -->
+    <delete id="boardDelete" parameterType="hashmap">
+    	delete from goit_board where b_no = #{b_no} and id=#{id}
+    </delete>
+</mapper>

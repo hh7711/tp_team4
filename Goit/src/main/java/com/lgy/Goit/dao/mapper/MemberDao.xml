@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lgy.Goit.dao.MemberDao">
+
+<!--     회원가입 -->
+    <insert id="signUp" parameterType="hashmap">
+		insert into goit_member(id, pwd, name, email) 
+				values(#{id}, #{pwd}, #{name}, #{email})
+    </insert>
+    
+<!--     아이디 중복체크 -->
+    <select id="idCheck" resultType="String">
+		select id from goit_member where id=#{id, jdbcType=VARCHAR}	 
+	</select>
+
+<!-- 	로그인 -->
+	<select id="signIn" parameterType="hashmap" resultType="com.lgy.Goit.dto.MemberDto">
+		select id, pwd from goit_member where id = #{id, jdbcType=VARCHAR} and pwd = #{pwd, jdbcType=VARCHAR}
+	</select>
+
+<!-- 	회원정보 조회 -->
+	<select id="memberInfo" parameterType="String" resultType="com.lgy.Goit.dto.MemberDto">
+		select * from goit_member where id = #{id}
+	</select>
+	
+<!-- 	회원정보 수정 -->
+	<update id="memberUpdate" parameterType="hashmap">
+		update goit_member set pwd = #{pwd}
+                			, email = #{email}
+    	where id = #{id}
+	</update>
+	
+<!--     비밀번호 체크 -->
+	<select id="pwdCheck" parameterType="hashmap" resultType="com.lgy.Goit.dto.MemberDto">
+		select pwd from goit_member where id = #{id, jdbcType=VARCHAR} and pwd = #{pwd, jdbcType=VARCHAR}
+	</select>
+	
+<!-- 	회원 탈퇴 -->
+	<delete id="memberDelete" parameterType="hashmap">
+		delete from goit_member where id = #{id} and pwd = #{pwd}
+	</delete>
+</mapper>

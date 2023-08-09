@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lgy.Goit.dao.FavoriteDao">
+	<!-- 	해당 게시글 북마크 여부 조회 -->
+    <select id="bookMarkCheck" parameterType="hashmap" resultType="com.lgy.Goit.dto.FavoriteDto">
+    	select * 
+		from goit_favorite
+ 		where b_no = #{b_no, jdbcType=NUMERIC} and id = #{id, jdbcType=VARCHAR}
+    </select>
+    
+<!-- 	북마크 -->
+    <insert id="bookMark" parameterType="hashmap">
+		insert into goit_favorite( fav
+                          		 , id
+                          		 , b_no)
+                   			values( 1
+	                        	  , #{id}
+                          		  , #{b_no})
+    </insert>
+    
+<!-- 	북마크 삭제 -->
+	<delete id="bookMarkDelete" parameterType="hashmap">
+    	delete from goit_favorite where b_no = #{b_no} and id = #{id}
+    </delete>
+<!-- 	글삭제시 글에 속한 북마크도 삭제 -->
+	<delete id="bookMarkDelete2" parameterType="hashmap">
+    	delete from goit_favorite where b_no = #{b_no}
+    </delete>
+</mapper>
